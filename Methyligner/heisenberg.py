@@ -31,10 +31,12 @@ class Methyligner:
 		else:
 			log.basicConfig(format='%(message)s')
 
+
+
+
 def main():
 	try:
 		Methyligner()
 	except KeyboardInterrupt:
 		log.error('{}{}{}{}'.format(clr.red,'shd__ ',clr.end,'Fatal: Keyboard Interrupt detected. Exiting.'))
-
 		sys.exit(2)
