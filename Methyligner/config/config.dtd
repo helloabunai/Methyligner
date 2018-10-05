@@ -5,14 +5,8 @@ University of Glasgow, Scotland
 Author : Alastair Maxwell
 Date   : god damn it -->
 
-<!--Comment:
-
-This file sets out the rules for which any configuration settings specified by the end user (in ArgumentConfig.xml) should adhere to. I.E. This file specifies a format of input for the program.
-The Config Element deals with specifying any required sub-configs (elements), and direct input (e.g. specifying aligned read directories). GTF_EXEC stores settings which determine what functions the application should execute.-->
-
-
 <!-- CONFIG ELEMENT -->
-<!ELEMENT config          (instance_flags, demultiplex_flags, trim_flags, alignment_flags)>
+<!ELEMENT config          (instance_flags, demultiplex_flags, trim_flags, alignment_flags, analysis_flags)>
 <!ATTLIST config          data_dir CDATA #REQUIRED>
 <!ATTLIST config	  	  reference_sequence CDATA #REQUIRED>
 
@@ -21,6 +15,7 @@ The Config Element deals with specifying any required sub-configs (elements), an
 <!ATTLIST instance_flags demultiplex CDATA #REQUIRED>
 <!ATTLIST instance_flags quality_control CDATA #REQUIRED>
 <!ATTLIST instance_flags sequence_alignment CDATA #REQUIRED>
+<!ATTLIST instance_flags methylation_analysis CDATA #REQUIRED>
 
 <!-- DEMULTIPLEX_FLAGS ELEMENT -->
 <!ELEMENT demultiplex_flags (#PCDATA)>
@@ -43,20 +38,10 @@ The Config Element deals with specifying any required sub-configs (elements), an
 <!ATTLIST trim_flags error_tolerance CDATA #IMPLIED>
 
 <!-- ALIGNMENT_FLAGS ELEMENT -->
-<!-- alignment parameters -->
 <!ELEMENT alignment_flags (#PCDATA)>
-<!ATTLIST alignment_flags min_seed_length CDATA #REQUIRED>
-<!ATTLIST alignment_flags band_width CDATA #REQUIRED>
-<!ATTLIST alignment_flags seed_length_extension CDATA #REQUIRED>
-<!ATTLIST alignment_flags skip_seed_with_occurrence CDATA #REQUIRED>
-<!ATTLIST alignment_flags chain_drop CDATA #REQUIRED>
-<!ATTLIST alignment_flags seeded_chain_drop CDATA #REQUIRED>
-<!ATTLIST alignment_flags discard_full_length_match CDATA #IMPLIED>
-<!-- scoring parameters -->
-<!ATTLIST alignment_flags seq_match_score CDATA #REQUIRED>
-<!ATTLIST alignment_flags mismatch_penalty CDATA #REQUIRED>
-<!ATTLIST alignment_flags indel_penalty CDATA #REQUIRED>
-<!ATTLIST alignment_flags gap_extend_penalty CDATA #REQUIRED>
-<!ATTLIST alignment_flags prime_clipping_penalty CDATA #REQUIRED>
-<!ATTLIST alignment_flags unpaired_pairing_penalty CDATA #REQUIRED>
+<!ATTLIST alignment_flags placeholder CDATA #IMPLIED>
+
+<!-- ANALYSIS_FLAGS ELEMENT -->
+<!ELEMENT analysis_flags (#PCDATA)>
+<!ATTLIST analysis_flags placeholder CDATA #IMPLIED>
 

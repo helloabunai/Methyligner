@@ -1,4 +1,4 @@
-from methyligner import *
+from heisenberg import *
 __all__ = ['heisenberg.py',
 		   '__backend.py',
 		   '__init__.py',

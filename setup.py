@@ -22,7 +22,7 @@ setup(
     url='https://github.com/helloabunai/Methyligner',
 
     # Author details
-    author='Alastair Maxwell/University of Glasgow',
+    author='Alastair Maxwell',
     author_email='alastair.maxwell@glasgow.ac.uk',
 
     # License to ship the package with
@@ -47,7 +47,6 @@ setup(
 
 		# Specific version of the python interpreter that are supported
 		# by this package. Python 3 not support at this time.
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
 
 		## And so on
@@ -73,7 +72,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=[],
+    install_requires=['pysamstats'],
 
     # These are the data files to be included in the package
 	# For GenoCall, this will be the data-sets used for machine-learning
