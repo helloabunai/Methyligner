@@ -22,6 +22,7 @@ from __backend import initialise_libraries
 from __indvContainer import SequenceSample
 
 ## Stages
+from . import qualitycontrol
 from . import alignment
 
 ##GLOBALS
@@ -88,7 +89,7 @@ class Methyligner:
 			log.error('{}{}{}{}'.format(clr.red, 'mth__ ', clr.end, 'Detected missing library from system/$PATH. Exiting!'))
 			sys.exit(2)
 		else:
-			log.info('{}{}{}{}'.format(clr.green,' mth__ ', clr.end, 'Required libraries present, assuming OK!\n'))
+			log.info('{}{}{}{}'.format(clr.green,'mth__ ', clr.end, 'Required libraries present, assuming OK!\n'))
 
 		##
 		## Set up instance-wide applicable files
@@ -112,11 +113,8 @@ class Methyligner:
 		"""		
 
 		##
-		## Config generics for DMPX/No DMPX
-		if self.instance_params.config_dict['instance_flags']['@demultiplex'] == 'True':
-			instance_inputdata = self.instance_params.config_dict['@data_dir']+'_demultiplexed'
-		else:
-			instance_inputdata = self.instance_params.config_dict['@data_dir']
+		## Data location
+		instance_inputdata = self.instance_params.config_dict['@data_dir']
 
 		##
 		## Pre-processing; check for compressed data
@@ -139,7 +137,7 @@ class Methyligner:
 				################################################
 				## Pre stage! Sample object/Tree generation.. ##
 				################################################
-				log.info('{}{}{}{}{}/{} ({})'.format(clr.bold, 'mth__ ', clr.end, 'Processing sequence pair: ',
+				log.info('\n{}{}{}{}{}/{} ({})'.format(clr.bold, 'mth__ ', clr.end, 'Processing sequence pair: ',
 													 str(i + 1), str(len(data_pairs)), seqpair_lbl))
 				current_seqpair = SequenceSample()
 				current_seqpair.set_label(seqpair_lbl)
@@ -150,7 +148,76 @@ class Methyligner:
 				current_seqpair.set_referenceidx(self.reference_indexes)
 				current_seqpair.set_forwardfastq(seqpair_dat[0])
 				current_seqpair.set_reversefastq(seqpair_dat[1])
-				current_seqpair.generate_sampletree()				
+				current_seqpair.generate_sampletree()
+
+				#########################################
+				## Stage 1 (A) FastQC on initial data. ##
+				#########################################
+				log.info('{}{}{}{}'.format(clr.bold, 'mth__ ', clr.end, 'Determining input read quality..'))
+				try:
+					qualitycontrol.SeqQC(current_seqpair, self.instance_params, target_bin='FQC', stage='Initial')
+					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
+				except Exception, e:
+					current_seqpair.set_exception('SeqQC-FQCInit')
+					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'SeqQC failure on ',seqpair_lbl,str(e)))
+					continue
+
+				##################################################
+				## Stage 1 (B) Demultiplex via forward primer.. ##
+				##################################################
+				log.info('{}{}{}{}'.format(clr.bold, 'mth__ ', clr.end, 'Demultiplexing sequence reads..'))
+				try:
+					qualitycontrol.SeqQC(current_seqpair, self.instance_params, target_bin='CA')
+					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
+				except Exception, e:
+					current_seqpair.set_exception('SeqQC-DMPX')
+					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'SeqQC failure on ',seqpair_lbl,str(e)))
+					continue
+
+				####################################################
+				## Stage 1 (C) FastQC on DMPX to determine CpG5.. ##
+				####################################################
+				log.info('{}{}{}{}'.format(clr.bold, 'mth__ ', clr.end, 'Processing demultiplexed reads for quality..'))
+				try:
+					qualitycontrol.SeqQC(current_seqpair, self.instance_params, target_bin='FQC', stage='PostDMPX')
+					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
+				except Exception, e:
+					current_seqpair.set_exception('SeqQC-DMPX')
+					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'SeqQC failure on ',seqpair_lbl,str(e)))
+					continue
+
+				####################################
+				## Stage 1 (D) Quality trimming.. ##
+				####################################
+				log.info('{}{}{}{}'.format(clr.bold, 'mth__ ', clr.end, 'Trimming by sequence PHRED score..'))
+				try:
+					qualitycontrol.SeqQC(current_seqpair, self.instance_params, target_bin='CATR')
+					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
+				except Exception, e:
+					current_seqpair.set_exception('SeqQC-DMPX')
+					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'SeqQC failure on ',seqpair_lbl,str(e)))
+					continue
+
+				###########################################
+				## Stage 1 (E) FastQC on post-PHRED trim ##
+				###########################################
+				log.info('{}{}{}{}'.format(clr.bold, 'mth__ ', clr.end, 'Processing PHRED filtered reads for quality..'))
+				try:
+					qualitycontrol.SeqQC(current_seqpair, self.instance_params, target_bin='FQC', stage='PostTrim')
+					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
+				except Exception, e:
+					current_seqpair.set_exception('SeqQC-DMPX')
+					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'SeqQC failure on ',seqpair_lbl,str(e)))
+					continue
+
+				print '\n>>HELLO'
+				print 'Init: ', current_seqpair.get_initial_readcount(), current_seqpair.get_initial_gcpcnt()
+				print 'PostDMPX: ', current_seqpair.get_postdmpx_readcount(), current_seqpair.get_postdmpx_gcpcnt()
+				print 'PostTrim: ', current_seqpair.get_posttrim_readcount(), current_seqpair.get_posttrim_gcpcnt()
+
+				###############################################
+				## Stage 2 (lol finally) Bismark alignment!! ##
+				###############################################
 
 def main():
 	try:
@@ -158,8 +225,3 @@ def main():
 	except KeyboardInterrupt:
 		log.error('{}{}{}{}'.format(clr.red,'shd__ ',clr.end,'Fatal: Keyboard Interrupt detected. Exiting.'))
 		sys.exit(2)
-
-
-##Ok, files are SS-MoncktonData/NGS_data/MiSeq/2018-05-21_Afroditi_AC04_MS0224 for CpG5 amplicon.
-##In there you can find a reference folder with the fasta file I use for the alignment.
-##CpG3 is another library, thought we can focus on one for now.

@@ -6,6 +6,7 @@ __author__ = 'alastair.maxwell@glasgow.ac.uk'
 import os
 import sys
 import glob
+import errno
 import shutil
 import subprocess
 import numpy as np
@@ -353,7 +354,6 @@ def initialise_libraries(instance_params):
 	## Calls UNIX type for checking binaries present
 	## Changed from WHICH as apparently type functions over different shells/config files
 	def type_func(binary):
-		binary_result = []
 		binary_string = 'type {}'.format(binary)
 		binary_subprocess = subprocess.Popen([binary_string], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		binary_result = binary_subprocess.communicate()
