@@ -219,9 +219,10 @@ class Methyligner:
 				## Stage 2 (lol finally) Bismark alignment!! ##
 				###############################################
 
+
 def main():
 	try:
 		Methyligner()
 	except KeyboardInterrupt:
-		log.error('{}{}{}{}'.format(clr.red,'shd__ ',clr.end,'Fatal: Keyboard Interrupt detected. Exiting.'))
+		log.error('{}{}{}{}'.format(clr.red,'mth__ ',clr.end,'Fatal: Keyboard Interrupt detected. Exiting.'))
 		sys.exit(2)

@@ -397,7 +397,7 @@ def extract_data(input_data_directory):
 	target_files = glob.glob(os.path.join(input_data_directory, '*'))
 	for extract_target in target_files:
 		if extract_target.lower().endswith(('.fq.gz', '.fastq.gz')):
-			log.info('{}{}{}{}'.format(Colour.bold, 'shd__ ', Colour.end, 'Detected compressed input data. Extracting!'))
+			log.info('{}{}{}{}'.format(Colour.bold, 'mth__ ', Colour.end, 'Detected compressed input data. Extracting!'))
 			break
 
 	for extract_target in target_files:
@@ -417,7 +417,7 @@ def sequence_pairings(data_path, instance_rundir):
 
 	file_count = len(sorted_input)
 	if not file_count % 2 == 0:
-		log.error('{}{}{}{}'.format(Colour.red, 'shd__ ', Colour.end, 'I/O: Non-even number of input files specified. Cannot continue without pairing!'))
+		log.error('{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'I/O: Non-even number of input files specified. Cannot continue without pairing!'))
 		sys.exit(2)
 
 	##
@@ -431,14 +431,14 @@ def sequence_pairings(data_path, instance_rundir):
 		## Check forward ends with R1
 		forward_data_name = sorted_input[i].split('/')[-1].split('.')[0]
 		if not forward_data_name.endswith('_R1'):
-			log.error('{}{}{}{}{}'.format(Colour.red,'shd__ ',Colour.end,'I/O: Forward input file does not end in _R1. ', forward_data))
+			log.error('{}{}{}{}{}'.format(Colour.red,'mth__ ',Colour.end,'I/O: Forward input file does not end in _R1. ', forward_data))
 			sys.exit(2)
 
 		##
 		## Check reverse ends with R2
 		reverse_data_name = sorted_input[i+1].split('/')[-1].split('.')[0]
 		if not reverse_data_name.endswith('_R2'):
-			log.error('{}{}{}{}{}'.format(Colour.red,'shd__ ',Colour.end,'I/O: Reverse input file does not end in _R2. ', reverse_data))
+			log.error('{}{}{}{}{}'.format(Colour.red,'mth__ ',Colour.end,'I/O: Reverse input file does not end in _R2. ', reverse_data))
 			sys.exit(2)
 
 		##
