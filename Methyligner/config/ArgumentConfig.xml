@@ -1,7 +1,7 @@
-<config data_dir="/path/to/fq" reference_sequence="/path/to/alignmentreference.fasta">
-	<instance_flags demultiplex="False" quality_control="True" sequence_alignment="True", methylation_analysis="True"/>
-	<demultiplex_flags forward_adapter="GCGACCCTGG" forward_position="5P" reverse_adapter="GCAGCGGCTG" reverse_position="5P" error_rate="0" min_overlap="10" min_length="" max_length=""/>
-	<trim_flags	trim_type="Adapter" quality_threshold="5" adapter_flag="-a" adapter="ACACTCTTTCCCTACACGACGCTCTTCCGATC" error_tolerance="0.5"/>
-	<alignment_flags placeholder='placeholder'/>
+<config data_dir="" reference_sequence="">
+	<instance_flags demultiplex="True" quality_control="True" sequence_alignment="True" methylation_analysis="True"/>
+	<demultiplex_flags forward_adapter="GTTTTTTTAGTTTTTTTAGT" forward_position="5P" reverse_adapter="" reverse_position="" error_rate="0" min_overlap="10" min_length="" max_length=""/>
+	<trim_flags	trim_type="Quality" quality_threshold="20" adapter_flag="" forward_adapter="" reverse_adapter="" error_tolerance="0.5"/>
+	<alignment_flags seed_mismatch="0" seed_length="20" min_valid_insertions="0" max_valid_insertions="500" seed_extension_attempts="15" reseed_attempts="2" read_open_extend="5,3" rfnc_open_extend="5,3"/>
 	<analysis_flags placeholder='placeholder'/>
 </config>

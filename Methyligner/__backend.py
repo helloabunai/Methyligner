@@ -262,7 +262,30 @@ class ConfigReader(object):
 		##
 		## Alignment flag settings
 		if alignment_flag == 'True':
-			placeholder = self.config_dict['alignment_flags']['@placeholder']
+			seed_mismatch = self.config_dict['alignment_flags']['@seed_mismatch']
+			seed_length = self.config_dict['alignment_flags']['@seed_length']
+			min_valid_insertions = self.config_dict['alignment_flags']['@min_valid_insertions']
+			max_valid_insertions = self.config_dict['alignment_flags']['@max_valid_insertions']
+			seed_extension_attempts = self.config_dict['alignment_flags']['@seed_extension_attempts']
+			reseed_attempts = self.config_dict['alignment_flags']['@reseed_attempts']
+			read_open_extend = self.config_dict['alignment_flags']['@read_open_extend']
+			rfnc_open_extend = self.config_dict['alignment_flags']['@rfnc_open_extend']
+
+			## Alignment integers
+			for parameter in [seed_mismatch, seed_length, min_valid_insertions,
+							  max_valid_insertions, seed_extension_attempts, reseed_attempts]:
+				if not parameter.isdigit():
+					log.error('{}{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Alignment parameter is not a valid integer!', parameter))
+
+			## Alignment tuples
+			for parameter in [read_open_extend, rfnc_open_extend]:
+				char_vec = list(parameter)
+				err_count = 0
+				if not char_vec[0].isdigit(): err_count+=1
+				if not char_vec[1] == ',': err_count+=1
+				if not char_vec[2].isdigit(): err_count+=1
+				if err_count != 0:
+					log.error('{}{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Alignment parameter is not a valid integer/structure!', parameter))
 
 		##
 		## Methylation Analysis flag settings

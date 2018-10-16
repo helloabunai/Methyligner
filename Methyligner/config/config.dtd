@@ -39,7 +39,14 @@ Date   : god damn it -->
 
 <!-- ALIGNMENT_FLAGS ELEMENT -->
 <!ELEMENT alignment_flags (#PCDATA)>
-<!ATTLIST alignment_flags placeholder CDATA #IMPLIED>
+<!ATTLIST alignment_flags seed_mismatch CDATA #IMPLIED>
+<!ATTLIST alignment_flags seed_length CDATA #IMPLIED>
+<!ATTLIST alignment_flags min_valid_insertions CDATA #IMPLIED>
+<!ATTLIST alignment_flags max_valid_insertions CDATA #IMPLIED>
+<!ATTLIST alignment_flags seed_extension_attempts CDATA #IMPLIED>
+<!ATTLIST alignment_flags reseed_attempts CDATA #IMPLIED>
+<!ATTLIST alignment_flags read_open_extend CDATA #IMPLIED>
+<!ATTLIST alignment_flags rfnc_open_extend CDATA #IMPLIED>
 
 <!-- ANALYSIS_FLAGS ELEMENT -->
 <!ELEMENT analysis_flags (#PCDATA)>

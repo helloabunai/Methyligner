@@ -22,8 +22,9 @@ from __backend import initialise_libraries
 from __indvContainer import SequenceSample
 
 ## Stages
-from . import qualitycontrol
 from . import alignment
+from . import qualitycontrol
+
 
 ##GLOBALS
 THREADS = multiprocessing.cpu_count()
@@ -94,7 +95,7 @@ class Methyligner:
 		##
 		## Set up instance-wide applicable files
 		## TODO reset when applicable to certain stages
-		self.index_path = ''; self.reference_indexes = [];
+		self.index_path = ''; self.reference_indexes = []
 		self.instance_results = ''; self.instance_graphs = ''
 
 		##
@@ -103,7 +104,7 @@ class Methyligner:
 
 		##
 		## Finished!
-		log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Methyligner pipeline completed; exiting!'))
+		log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, '\nMethyligner pipeline completed; exiting!'))
 
 	def sequence_workflow(self):
 		"""
@@ -210,15 +211,17 @@ class Methyligner:
 					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'SeqQC failure on ',seqpair_lbl,str(e)))
 					continue
 
-				print '\n>>HELLO'
-				print 'Init: ', current_seqpair.get_initial_readcount(), current_seqpair.get_initial_gcpcnt()
-				print 'PostDMPX: ', current_seqpair.get_postdmpx_readcount(), current_seqpair.get_postdmpx_gcpcnt()
-				print 'PostTrim: ', current_seqpair.get_posttrim_readcount(), current_seqpair.get_posttrim_gcpcnt()
-
 				###############################################
 				## Stage 2 (lol finally) Bismark alignment!! ##
 				###############################################
-
+				log.info('{}{}{}{}'.format(clr.bold, 'mth__ ', clr.end, 'Executing BISMARK methylation sequence alignment..'))
+				try:
+					alignment.MethAlign(current_seqpair, self.instance_params)
+					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
+				except Exception, e:
+					current_seqpair.set_exception('MethAlign')
+					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'Alignment failure on ',seqpair_lbl,str(e)))
+					continue
 
 def main():
 	try:
