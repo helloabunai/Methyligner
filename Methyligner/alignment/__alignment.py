@@ -37,25 +37,17 @@ class ReferenceIndex:
 		shutil.copy(self.reference, os.path.join(reference_index, self.reference.split('/')[-1]))
 
 		##
-		## Indexing reference with bowtie2-build (bismark utilises bowtie2)
-		build_subprocess = subprocess.Popen(['bowtie2-build', '-f', index_copy, index_copy], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		## Indexing reference with BWA-METH
+		build_subprocess = subprocess.Popen(['bwameth.py', 'index', index_copy], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		build_rawoutput = build_subprocess.communicate()
 		build_stderr = build_rawoutput[1]
 		build_subprocess.wait()
-
-		##
-		## Methylation specific indexing
-		meth_subprocess = subprocess.Popen(['bismark_genome_preparation', reference_index], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		meth_rawoutput = meth_subprocess.communicate()
-		meth_stderr = meth_rawoutput[1]
-		meth_subprocess.wait()
 
 		##
 		## Report stderr to file
 		build_report = os.path.join(reference_index, 'IndexBuildReport.txt')
 		report_file = open(build_report, 'w')
 		report_file.write(build_stderr)
-		report_file.write('\n'+meth_stderr)
 		report_file.close()
 
 		return reference_index
@@ -79,10 +71,10 @@ class MethAlign:
 
 	def alignment_workflow(self):
 
-		forward_assembly = self.bismark_instance(self.forward_reads, 'Aligning forward reads..','R1')
-		reverse_assembly = self.bismark_instance(self.reverse_reads, 'Aligning reverse reads..','R2')
+		forward_assembly = self.bwameth_instance(self.forward_reads, 'Aligning forward reads..','R1')
+		reverse_assembly = self.bwameth_instance(self.reverse_reads, 'Aligning reverse reads..','R2')
 
-	def bismark_instance(self, inreads, feedback_string, io_index):
+	def bwameth_instance(self, inreads, feedback_string, io_index):
 
 		"""
 		DoCSTRINGz
@@ -101,49 +93,44 @@ class MethAlign:
 		rfnc_open_extend = self.instance_params.config_dict['alignment_flags']['@rfnc_open_extend']
 
 		##
-		## Bismark thread limiter
-		global THREADS
-		if THREADS > 4: THREADS = 4
-
-		##
 		## Output path
-		log.info('{}{}{}{}'.format(clr.bold,'shd__ ',clr.end,feedback_string))
+		log.info('{}{}{}{}'.format(clr.bold,'mth__ ',clr.end,feedback_string))
 		sample_string = '{}_{}'.format(self.sample_root, io_index)
 		alignment_outdir = os.path.join(self.target_output, sample_string)
 		if not os.path.exists(alignment_outdir): force_mkdir(alignment_outdir)
 
 		"""
-		THREADS                  :: -P <INT>        :: CPU threads to utilise [1]
-		seed_mismatch            :: -N <INT>        :: Number of mismatches allowed in a seed during alignment [0]
-		seed_length              :: -L <INT>        :: Seed substring length during alignment [20]
-		min_valid_insertions     :: -I <INT>        :: Minimum insert size during alignment [0]
-		max_valid_insertions     :: -X <INT>        :: Maximum insert size during alignment [500]
-		seed_extension_attempts  :: -D <INT>        :: Extend seeds <int> times before failure [15]
-		reseed_attempts          :: -R <INT>        :: Re-seed repetitive reads <int> times before moving on [2]
-		read_open_extend         :: -rdg <INT, INT> :: Gap open/extend penalties for reads [5,3]
-		rfnc_open_extend         :: -rfg <INT, INT> :: Gap open/extend penalties for reference [5,3]
-		bowtie2                  :: --bowtie2       :: utilises bowtie2 aligner
-		stdout                   :: n/a             :: BAM file goes to stdout
+		THREADS                     :: -t <INT>      :: CPU threads to utilise [1]
+		min_seed_length             :: -k <INT>      :: minimum seed length [19]
+		band_width                  :: -w <INT>      :: band width for banded alignment [100]
+		seed_length_extension       :: -r <FLOAT>    :: look for internal seeds inside a seed longer than <val> [1.5]
+		skip_seed_with_occurrence   :: -c <INT>      :: skip seeds with more than <val> occurrences [500]
+		chain_drop                  :: -D <FLOAT>    :: drop chains shorter than <val> fraction of the overlapping chain [0.50]
+		seeded_chain_drop           :: -W <INT>      :: discard chain if seeded bases shorter than <val>
+		seq_match_score             :: -A <INT>      :: score for sequence match [1]
+		mismatch_penalty            :: -B <INT>      :: penalty for mismatch [4]
+		indel_penalty               :: -O [INT, INT] :: gap open penalites for ins/del [6,6]
+		gap_extend_penalty          :: -E [INT, INT] :: penalty for extending gaps [1,1]
+		prime_clipping_penalty      :: -L [INT, INT] :: 5' & 3' clipping penalty [5,5]
+		unpaired_pairing_penalty    :: -U <INT>      :: penalty for unpaired read pair [17]
 		"""
 
-		bismark_subprocess = subprocess.Popen(['bismark', '-P', str(THREADS), '-N', seed_mismatch, '-L', seed_length,
-											   '-D', seed_extension_attempts, '-R', reseed_attempts,
-											   '-rdg', read_open_extend, '-rfg', rfnc_open_extend,
-											   '--bowtie2', '--quiet', '-o', alignment_outdir,
-											   self.reference_sequence, inreads],
-											   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		bismark_rawout = bismark_subprocess.communicate(); bismark_subprocess.wait()
+		## bwa-meth needs path to indvidual pre-conversion FASTA
+		target = self.reference_sequence.split('/')[-1]
+		vanilla_fasta = os.path.join(self.reference_sequence, '{}.fa'.format(target))
+		converted_idx = os.path.join(self.reference_sequence, '{}{}'.format(target, '.fa.bwameth.c2t'))
+
+		output_assembly = os.path.join(alignment_outdir, '{}assembly.sam'.format(io_index))
+		output_file= open(output_assembly,'w')
+		bwameth_process = subprocess.Popen(['bwameth.py', '--threads', str(THREADS),
+			'--reference', vanilla_fasta, inreads], stdout=output_file, stderr=subprocess.PIPE)
+		bwameth_stderr = bwameth_process.communicate()[1]; bwameth_process.wait()
 
 		##
 		## Generate an alignment report (i.e. console output to file)
 		alignment_report = os.path.join(alignment_outdir, 'AlignmentReport.txt')
 		report_file = open(alignment_report, 'w')
-		report_file.write(bismark_rawout[0])
-		report_file.write(bismark_rawout[1])
+		report_file.write(bwameth_stderr)
 		report_file.close()
 
 		return 0
-
-
-
-

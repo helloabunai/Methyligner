@@ -401,9 +401,9 @@ def initialise_libraries(instance_params):
 		try:type_func('cutadapt')
 		except Exception: trigger=True
 	if alignment == 'True':
-		try:type_func('bismark')
+		try:type_func('bwa')
 		except Exception: trigger=True
-		try:type_func('bowtie2')
+		try:type_func('bwameth.py')
 		except Exception: trigger=True
 		try:type_func('samtools')
 		except Exception: trigger=True

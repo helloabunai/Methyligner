@@ -104,7 +104,7 @@ class Methyligner:
 
 		##
 		## Finished!
-		log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, '\nMethyligner pipeline completed; exiting!'))
+		log.info('\n{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Methyligner pipeline completed; exiting!'))
 
 	def sequence_workflow(self):
 		"""
@@ -129,8 +129,7 @@ class Methyligner:
 			log.info('{}{}{}{}'.format(clr.bold,'mth__ ',clr.end,'Indexing reference(s) before initialising sample pair cycle..'))
 			self.index_path = os.path.join(self.instance_rundir,'Indexes'); force_mkdir(self.index_path)
 			reference_sequence = self.instance_params.config_dict['@reference_sequence']
-			reference_indexes = alignment.ReferenceIndex(reference_sequence, self.index_path).get_index_path()
-			self.reference_indexes = reference_indexes
+			self.reference_indexes = alignment.ReferenceIndex(reference_sequence, self.index_path).get_index_path()
 
 		data_pairs = sequence_pairings(instance_inputdata, self.instance_rundir)
 		for i in range(len(data_pairs)):
@@ -211,10 +210,10 @@ class Methyligner:
 					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'SeqQC failure on ',seqpair_lbl,str(e)))
 					continue
 
-				###############################################
-				## Stage 2 (lol finally) Bismark alignment!! ##
-				###############################################
-				log.info('{}{}{}{}'.format(clr.bold, 'mth__ ', clr.end, 'Executing BISMARK methylation sequence alignment..'))
+				################################################
+				## Stage 2 (lol finally) BWA-METH alignment!! ##
+				################################################
+				log.info('{}{}{}{}'.format(clr.bold, 'mth__ ', clr.end, 'Executing BWA-METH methylation sequence alignment..'))
 				try:
 					alignment.MethAlign(current_seqpair, self.instance_params)
 					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
