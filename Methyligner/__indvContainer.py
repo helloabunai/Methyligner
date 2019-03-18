@@ -22,6 +22,9 @@ class SequenceSample:
 		self.postdmpx_fastqc = None; self.postdmpx_readcount = 0; self.postdmpx_pbsq = None; self.postdmpx_gcpcnt = 0
 		self.posttrim_fastqc = None; self.posttrim_readcount = 0; self.posttrim_pbsq = None; self.posttrim_gcpcnt = 0
 
+		self.forward_assembly = ''
+		self.reverse_assembly = ''
+
 		self.exception_raised = ''
 
 	##
@@ -68,6 +71,11 @@ class SequenceSample:
 		self.postdmpx_gcpcnt = pcnt
 	def set_posttrim_gcpcnt(self, pcnt):
 		self.posttrim_gcpcnt = pcnt
+
+	def set_forward_assembly(self, pathtofi):
+		self.forward_assembly = pathtofi
+	def set_reverse_assembly(self, pathtofi):
+		self.reverse_assembly = pathtofi
 
 	def set_exception(self, exc):
 		self.exception_raised = exc
@@ -116,6 +124,11 @@ class SequenceSample:
 		return self.postdmpx_gcpcnt
 	def get_posttrim_gcpcnt(self):
 		return self.posttrim_gcpcnt
+
+	def get_forward_assembly(self):
+		return self.forward_assembly
+	def get_reverse_assembly(self):
+		return self.reverse_assembly
 
 	def get_exception(self):
 		return self.exception_raised

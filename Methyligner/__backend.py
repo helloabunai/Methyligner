@@ -231,7 +231,7 @@ class ConfigReader(object):
 				elif not int(quality_threshold) in range(0,39):
 					log.error('{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Specified quality threshold integer out of range (0-38).'))
 					trigger = True
-			
+
 			## Adapter trimming
 			trim_adapters = ['-a','-g','-a$','-g^','-b']
 			adapter_flag = self.config_dict['trim_flags']['@adapter_flag']
@@ -249,7 +249,7 @@ class ConfigReader(object):
 					if charbase not in trim_adapter_base:
 						log.error('{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Invalid character detected in RV adapter sequence.'))
 						trigger = True
-			
+
 			## Error tolerance
 			error_tolerance = self.config_dict['trim_flags']['@error_tolerance']
 			if not isinstance(float(error_tolerance), float):
@@ -290,7 +290,22 @@ class ConfigReader(object):
 		##
 		## Methylation Analysis flag settings
 		if methylation_flag == 'True':
-			placeholder = self.config_dict['analysis_flags']['@placeholder']
+			quant_variation = self.config_dict['analysis_flags']['@quant_variation']
+			quant_mapq = self.config_dict['analysis_flags']['@quant_mapq']
+			quant_baseq = self.config_dict['analysis_flags']['@quant_baseq']
+			read_depth_limit = self.config_dict['analysis_flags']['@read_depth_limit']
+
+			## quantification
+			for parameter in [quant_variation, quant_mapq, quant_baseq]:
+				if not (parameter == 'True' or parameter == 'False'):
+					log.error('{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Specified analysis quantification flag is not set to True/False.'))
+					trigger = True
+				if not read_depth_limit.isdigit():
+					log.error('{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Specified read_depth_limit integer is invalid.'))
+					trigger = True
+				elif not int(quality_threshold) >= 0:
+					log.error('{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Specified read_depth_limit integer out of range (>=0).'))
+					trigger = True
 
 		if trigger:
 			log.error('{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Failure, exiting.'))
@@ -305,7 +320,7 @@ def sanitise_inputs(parsed_arguments):
 	Otherwise, trigger remains false and the inputs "pass"
 	"""
 
-	trigger = False	
+	trigger = False
 	## Jobname prefix validity check
 	if parsed_arguments.jobname:
 		for character in parsed_arguments.jobname:

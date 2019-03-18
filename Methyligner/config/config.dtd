@@ -50,5 +50,7 @@ Date   : god damn it -->
 
 <!-- ANALYSIS_FLAGS ELEMENT -->
 <!ELEMENT analysis_flags (#PCDATA)>
-<!ATTLIST analysis_flags placeholder CDATA #IMPLIED>
-
+<!ATTLIST analysis_flags quant_variation CDATA #IMPLIED>
+<!ATTLIST analysis_flags quant_mapq CDATA #IMPLIED>
+<!ATTLIST analysis_flags quant_baseq CDATA #IMPLIED>
+<!ATTLIST analysis_flags read_depth_limit CDATA #IMPLIED>

@@ -22,6 +22,7 @@ from __backend import initialise_libraries
 from __indvContainer import SequenceSample
 
 ## Stages
+from . import analysis
 from . import alignment
 from . import qualitycontrol
 
@@ -31,7 +32,7 @@ THREADS = multiprocessing.cpu_count()
 
 class Methyligner:
 	def __init__(self):
-		
+
 		"""
 		TODO DOCSTRINGS
 		"""
@@ -111,7 +112,7 @@ class Methyligner:
 		Workflow for when Methyligner is being ran in config mode..
 		Behaviours are tailored based on information extracted from the specified config XML file
 		:return: None
-		"""		
+		"""
 
 		##
 		## Data location
@@ -220,6 +221,18 @@ class Methyligner:
 				except Exception, e:
 					current_seqpair.set_exception('MethAlign')
 					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'Alignment failure on ',seqpair_lbl,str(e)))
+					continue
+
+				###################################
+				## Stage 3 PySamStats analysis!! ##
+				###################################
+				log.info('{}{}{}{}'.format(clr.bold, 'mth__ ', clr.end, 'Running PySAMStats analysis..'))
+				try:
+					analysis.Quantification(current_seqpair, self.instance_params)
+					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
+				except Exception, e:
+					current_seqpair.set_exception('Analysis-PYSAM')
+					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'Analysis failure on ',seqpair_lbl,str(e)))
 					continue
 
 def main():

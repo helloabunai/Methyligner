@@ -73,12 +73,14 @@ class MethAlign:
 
 		forward_assembly = self.bwameth_instance(self.forward_reads, 'Aligning forward reads..','R1')
 		reverse_assembly = self.bwameth_instance(self.reverse_reads, 'Aligning reverse reads..','R2')
+		self.sequencepair_object.set_forward_assembly(forward_assembly)
+		self.sequencepair_object.set_reverse_assembly(reverse_assembly)
 
 	def bwameth_instance(self, inreads, feedback_string, io_index):
 
 		"""
 		DoCSTRINGz
-		:return: 
+		:return:
 		"""
 
 		##
@@ -133,4 +135,4 @@ class MethAlign:
 		report_file.write(bwameth_stderr)
 		report_file.close()
 
-		return 0
+		return output_assembly
