@@ -227,13 +227,13 @@ class Methyligner:
 				## Stage 3 PySamStats analysis!! ##
 				###################################
 				log.info('{}{}{}{}'.format(clr.bold, 'mth__ ', clr.end, 'Running PySAMStats analysis..'))
-				try:
-					analysis.Quantification(current_seqpair, self.instance_params)
-					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
-				except Exception, e:
-					current_seqpair.set_exception('Analysis-PYSAM')
-					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'Analysis failure on ',seqpair_lbl,str(e)))
-					continue
+				#try:
+				analysis.Quantification(current_seqpair, self.instance_params)
+				log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
+				#except Exception, e:
+				#	current_seqpair.set_exception('Analysis-PYSAM')
+				#	log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'Analysis failure on ',seqpair_lbl,str(e)))
+				#	continue
 
 def main():
 	try:

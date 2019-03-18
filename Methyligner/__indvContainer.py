@@ -24,6 +24,8 @@ class SequenceSample:
 
 		self.forward_assembly = ''
 		self.reverse_assembly = ''
+		self.forward_convassembly = ''
+		self.reverse_convassembly = ''
 
 		self.exception_raised = ''
 
@@ -76,6 +78,10 @@ class SequenceSample:
 		self.forward_assembly = pathtofi
 	def set_reverse_assembly(self, pathtofi):
 		self.reverse_assembly = pathtofi
+	def set_forward_convassembly(self, pathtofi):
+		self.forward_convassembly = pathtofi
+	def set_reverse_convassembly(self, pathtofi):
+		self.reverse_convassembly = pathtofi
 
 	def set_exception(self, exc):
 		self.exception_raised = exc
@@ -129,6 +135,10 @@ class SequenceSample:
 		return self.forward_assembly
 	def get_reverse_assembly(self):
 		return self.reverse_assembly
+	def get_forward_convassembly(self):
+		return self.forward_convassembly
+	def get_reverse_convassembly(self):
+		return self.reverse_convassembly
 
 	def get_exception(self):
 		return self.exception_raised

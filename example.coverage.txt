@@ -1,0 +1,1 @@
+chrom	pos	reads_all	reads_pp

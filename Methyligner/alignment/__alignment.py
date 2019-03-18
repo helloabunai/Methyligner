@@ -71,10 +71,12 @@ class MethAlign:
 
 	def alignment_workflow(self):
 
-		forward_assembly = self.bwameth_instance(self.forward_reads, 'Aligning forward reads..','R1')
-		reverse_assembly = self.bwameth_instance(self.reverse_reads, 'Aligning reverse reads..','R2')
+		forward_assembly, forward_converted = self.bwameth_instance(self.forward_reads, 'Aligning forward reads..','R1')
+		reverse_assembly, reverse_converted = self.bwameth_instance(self.reverse_reads, 'Aligning reverse reads..','R2')
 		self.sequencepair_object.set_forward_assembly(forward_assembly)
 		self.sequencepair_object.set_reverse_assembly(reverse_assembly)
+		self.sequencepair_object.set_forward_convassembly(forward_converted)
+		self.sequencepair_object.set_reverse_convassembly(reverse_converted)
 
 	def bwameth_instance(self, inreads, feedback_string, io_index):
 
@@ -122,11 +124,12 @@ class MethAlign:
 		vanilla_fasta = os.path.join(self.reference_sequence, '{}.fa'.format(target))
 		converted_idx = os.path.join(self.reference_sequence, '{}{}'.format(target, '.fa.bwameth.c2t'))
 
-		output_assembly = os.path.join(alignment_outdir, '{}assembly.sam'.format(io_index))
+		output_assembly = os.path.join(alignment_outdir, '{}_assembly.sam'.format(sample_string))
 		output_file= open(output_assembly,'w')
 		bwameth_process = subprocess.Popen(['bwameth.py', '--threads', str(THREADS),
 			'--reference', vanilla_fasta, inreads], stdout=output_file, stderr=subprocess.PIPE)
 		bwameth_stderr = bwameth_process.communicate()[1]; bwameth_process.wait()
+		output_file.close()
 
 		##
 		## Generate an alignment report (i.e. console output to file)
@@ -135,4 +138,27 @@ class MethAlign:
 		report_file.write(bwameth_stderr)
 		report_file.close()
 
-		return output_assembly
+		##
+		## Convert assembly from sam to bam
+		output_converted = os.path.join(alignment_outdir, '{}_converted.bam'.format(sample_string))
+		converted_file = open(output_converted,'w')
+		samtools_process = subprocess.Popen(['samtools', 'view' ,'-S', '-b', output_assembly],
+			stdout=converted_file, stderr=subprocess.PIPE)
+		samtools_stderr = samtools_process.communicate()[1]; samtools_process.wait()
+		converted_file.close()
+
+		##
+		## Sort our binary assembly
+		sorted_converted = os.path.join(alignment_outdir, '{}_sorted.bam'.format(sample_string))
+		sorted_file = open(sorted_converted, 'w')
+		sort_process = subprocess.Popen(['samtools', 'sort', output_converted], 
+			stdout=sorted_file, stderr=subprocess.PIPE)
+		sort_stderr = sort_process.communicate()[1]; sort_process.wait()
+
+		##
+		## index the newly created sorted BAM file
+		index_process = subprocess.Popen(['samtools', 'index', sorted_converted],
+		 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		index_output = index_process.communicate(); index_process.wait()
+
+		return output_assembly, sorted_converted
