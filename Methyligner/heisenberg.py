@@ -4,6 +4,7 @@ __author__ = 'alastair.maxwell@glasgow.ac.uk'
 
 ## Python shit
 import os
+import csv
 import sys
 import shutil
 import argparse
@@ -42,6 +43,7 @@ class Methyligner:
 		self.parser = argparse.ArgumentParser(prog='methyligner', description='Methyligner: Alignment/Analysis pipeline for Methylated DNA sequences.')
 		self.parser.add_argument('-v', '--verbose', help='Verbose output mode. Setting this flag enables verbose output. Default: off.', action='store_true')
 		self.parser.add_argument('-c', '--config', help='Pipeline config. Specify a directory to your ArgumentConfig.xml file.', nargs=1, required=True)
+		self.parser.add_argument('-r', '--region', help='Which of CPG3 or CPG5 regions you wish to analyse, on this instance of Methyligner.', nargs=1, type=str, required=True)
 		self.parser.add_argument('-t', '--threads', help='Thread utilisation. Typically only alters third party alignment performance. Default: system max.', type=int, choices=xrange(1, THREADS+1), default=THREADS)
 		self.parser.add_argument('-j', '--jobname', help='Customised folder output name. If not specified, defaults to normal output naming schema.', type=str, required=True)
 		self.parser.add_argument('-o', '--output', help='Output path. Specify a directory you wish output to be directed towards.', metavar='output', nargs=1, required=True)
@@ -84,6 +86,7 @@ class Methyligner:
 		shutil.copyfile(self.configfile, instance_configuration)
 		self.instance_params = ConfigReader(script_path, self.configfile)
 		self.instance_params.config_dict['JobName'] = self.args.jobname
+		self.instance_params.config_dict['MethRegion'] = self.args.region
 
 		##
 		## Check system $PATH for required third party binaries
@@ -96,16 +99,39 @@ class Methyligner:
 		##
 		## Set up instance-wide applicable files
 		## TODO reset when applicable to certain stages
-		self.index_path = ''; self.reference_indexes = []
+		self.index_path = ''; self.reference_indexes = []; self.reference_file = ''
 		self.instance_results = ''; self.instance_graphs = ''
 
 		##
 		## Workflow time!
+		self.initialise_output()
 		self.sequence_workflow()
 
 		##
 		## Finished!
 		log.info('\n{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Methyligner pipeline completed; exiting!'))
+
+	def initialise_output(self):
+
+		##
+		## horrid messy grab of region positions
+		CPG3 = SequenceSample().methylation_regions('CPG3')
+		CPG5 = SequenceSample().methylation_regions('CPG5')
+
+		##
+		## Instance results (methylation table)
+		self.instance_results = os.path.join(self.instance_rundir, 'QuantifiedVariationReport.csv'); csv_header = []
+		if self.args.region[0] == 'CPG3':
+			position_strings = ['CPG3@'+str(x) for x in CPG3]
+			csv_header = ['Sample Name', 'Orientation', 'Initial Reads', 'PostDMPX Reads', 'PostTRIM Reads', 'Utilised Reads'] + position_strings
+		if self.args.region[0] == 'CPG5':
+			position_strings = ['CPG5@'+str(x) for x in CPG5]
+			csv_header = ['Sample Name', 'Orientation', 'Initial Reads', 'PostDMPX Reads', 'PostTRIM Reads', 'Utilised Reads'] + position_strings
+
+		## Write header to file
+		with open(self.instance_results, 'w') as outfi:
+			wr = csv.writer(outfi)
+			wr.writerow(csv_header)
 
 	def sequence_workflow(self):
 		"""
@@ -130,7 +156,7 @@ class Methyligner:
 			log.info('{}{}{}{}'.format(clr.bold,'mth__ ',clr.end,'Indexing reference(s) before initialising sample pair cycle..'))
 			self.index_path = os.path.join(self.instance_rundir,'Indexes'); force_mkdir(self.index_path)
 			reference_sequence = self.instance_params.config_dict['@reference_sequence']
-			self.reference_indexes = alignment.ReferenceIndex(reference_sequence, self.index_path).get_index_path()
+			self.reference_indexes, self.reference_file = alignment.ReferenceIndex(reference_sequence, self.index_path).get_fai_faidx()
 
 		data_pairs = sequence_pairings(instance_inputdata, self.instance_rundir)
 		for i in range(len(data_pairs)):
@@ -146,6 +172,7 @@ class Methyligner:
 				current_seqpair.set_qcpath(seqpair_dat[3])
 				current_seqpair.set_alignpath(seqpair_dat[4])
 				current_seqpair.set_analysispath(seqpair_dat[5])
+				current_seqpair.set_referencefile(self.reference_file)
 				current_seqpair.set_referenceidx(self.reference_indexes)
 				current_seqpair.set_forwardfastq(seqpair_dat[0])
 				current_seqpair.set_reversefastq(seqpair_dat[1])

@@ -6,8 +6,10 @@ __author__ = 'alastair.maxwell@glasgow.ac.uk'
 import os
 import pysam
 import shutil
+import itertools
 import pysamstats
 import subprocess
+import numpy as np
 import logging as log
 import multiprocessing
 
@@ -27,10 +29,10 @@ class Quantification:
     	self.target_output = sequencepair_object.get_analysispath()
 
     	## run functions
-    	for assembly in [self.forward_aln, self.reverse_aln]:
-    		self.determine_request(assembly)
+    	for assembly in [(self.forward_aln, 'R1'), (self.reverse_aln, 'R2')]:
+    		self.determine_request(assembly[0], assembly[1])
 
-    def determine_request(self, bamfi):
+    def determine_request(self, bamfi, orientation):
 
     	"""
     	Determine which aspects of pysamstats the user wishes to be run
@@ -46,18 +48,56 @@ class Quantification:
     	utilised_limit = 0
     	if read_depth_limit == 0:
     		utilised_limit = int(pysam.idxstats(bamfi).split('\n')[0].split('\t')[2])
-    	else: 
-    		utilised_limit = read_depth_limit	
+    	else:
+    		utilised_limit = read_depth_limit
 
-    	if quantify_variation: self.determine_variation()
-    	if quantify_mapq: self.determine_mapq()
-    	if quantify_baseq: self.determine_baseq()
+    	if quantify_variation: self.determine_variation(bamfi, orientation)
+    	if quantify_mapq: self.determine_mapq(bamfi, orientation)
+    	if quantify_baseq: self.determine_baseq(bamfi, orientation)
 
-    def determine_variation(self):
-    	print 'hi'
+    def determine_variation(self, bamfi, orientation):
 
-    def determine_mapq(self):
-    	print 'yo'
+        ##
+        ## Generate variation table
+        utilised_reference = self.sequencepair_object.get_referencefile()
+        variation_output = os.path.join(self.target_output, '{}_variation_report.txt'.format(orientation))
+        variation_file = open(variation_output, 'w')
+        variation_process = subprocess.Popen(['pysamstats', '--type', 'variation', '--fasta', utilised_reference, bamfi], stdout=variation_file, stderr=subprocess.PIPE)
+        variation_stderr = variation_process.communicate()[1]; variation_process.wait()
 
-    def determine_baseq(self):
-    	print 'howdy'
+        ##
+        ## Filter for current region's position
+        target_region = self.instance_params.config_dict['MethRegion'][0]
+        methregion_positions = self.sequencepair_object.methylation_regions(target_region)
+        np.warnings.filterwarnings('ignore') ## ignore numpy complaining about empty file if we skip header on variation_report with no results
+        variation_data = np.ndarray.tolist(np.genfromtxt(variation_output, delimiter='\t', dtype=None, encoding="utf8", skip_header=1))
+        ## HEADER:: chrom, pos, ref, reads_all, reads_pp, matches, matches_pp, mismatches, mismatches_pp, deletions, deletions_pp, insertions, insertions_pp, A, A_pp, C, C_pp, T, T_pp, G, G_pp, N, N_pp
+        ## Filter all processed positions to those relevant to current methylation region
+        if len(variation_data) == 0:
+            ## empty file, no variation reported
+            for position in methregion_positions:
+                temp1 = ['{}{}'.format(target_region, 'NullVariationReported'), position]; temp2 = ['0']*21
+                variation_data.append(temp1+temp2)
+        else:
+            ## file had variation report
+            ## remove positions not in the current CPG region
+            for i in xrange(len(variation_data) - 1, -1, -1):
+                element = variation_data[i]
+                if element[1] not in methregion_positions:
+                    del variation_data[i]
+            ## check for positions missing for current CPG region
+            for position, result in itertools.izip_longest(methregion_positions, variation_data):
+                if position != result[1]:
+                    mismatch_idx = variation_data.index(result)
+                    temp1 = ['{}{}'.format(target_region, 'NullVariationReported'), position]; temp2 = ['0']*21
+                    variation_data.insert(mismatch_idx, temp1+temp2)
+
+        ## assign to object
+        if orientation == 'R1': self.sequencepair_object.set_forward_variation(variation_data)
+        if orientation == 'R2': self.sequencepair_object.set_reverse_variation(variation_data)
+
+    def determine_mapq(self, bamfi, orientation):
+    	pass
+
+    def determine_baseq(self, bamfi, orientation):
+    	pass

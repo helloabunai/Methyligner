@@ -328,6 +328,12 @@ def sanitise_inputs(parsed_arguments):
 				log.error('{}{}{}{}'.format(Colour.red,'mth__ ',Colour.end,'Specified Job Name has invalid characters: "', character, '"'))
 				trigger = True
 
+	## CPG region check
+	if parsed_arguments.region:
+		if parsed_arguments.region[0] not in ['CPG3', 'CPG5']:
+			log.error('{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'Specified methylation region is not CPG3/CPG5. Provided:', parsed_arguments.region[0]))
+			trigger = True
+
 	## Config mode check
 	if parsed_arguments.config:
 		if not filesystem_exists_check(parsed_arguments.config[0]):

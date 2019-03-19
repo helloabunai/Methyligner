@@ -17,8 +17,9 @@ from ..__backend import Colour as clr
 
 class ReferenceIndex:
 	def __init__(self, reference_file, target_output):
-		self.reference = reference_file
+		self.reference_file = reference_file
 		self.target_output = target_output
+		self.reference = reference_file
 		self.reference = self.index_reference()
 
 	def index_reference(self):
@@ -34,7 +35,8 @@ class ReferenceIndex:
 		reference_index = os.path.join(self.target_output, reference_root)
 		index_copy = os.path.join(reference_index, self.reference.split('/')[-1])
 		if not os.path.exists(reference_index): os.makedirs(reference_index)
-		shutil.copy(self.reference, os.path.join(reference_index, self.reference.split('/')[-1]))
+		self.reference_file = os.path.join(reference_index, self.reference.split('/')[-1])
+		shutil.copy(self.reference, self.reference_file)
 
 		##
 		## Indexing reference with BWA-METH
@@ -52,9 +54,9 @@ class ReferenceIndex:
 
 		return reference_index
 
-	def get_index_path(self):
+	def get_fai_faidx(self):
 
-		return self.reference
+		return self.reference, self.reference_file
 
 class MethAlign:
 	def __init__(self, sequencepair_object=None, instance_params=None):
@@ -151,7 +153,7 @@ class MethAlign:
 		## Sort our binary assembly
 		sorted_converted = os.path.join(alignment_outdir, '{}_sorted.bam'.format(sample_string))
 		sorted_file = open(sorted_converted, 'w')
-		sort_process = subprocess.Popen(['samtools', 'sort', output_converted], 
+		sort_process = subprocess.Popen(['samtools', 'sort', output_converted],
 			stdout=sorted_file, stderr=subprocess.PIPE)
 		sort_stderr = sort_process.communicate()[1]; sort_process.wait()
 

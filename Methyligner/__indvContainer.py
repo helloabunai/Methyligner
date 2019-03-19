@@ -15,6 +15,7 @@ class SequenceSample:
 		self.sample_analysispath = ''
 
 		self.reference_idx = ''
+		self.reference_file = ''
 		self.forward_fastq = ''
 		self.reverse_fastq = ''
 
@@ -26,6 +27,8 @@ class SequenceSample:
 		self.reverse_assembly = ''
 		self.forward_convassembly = ''
 		self.reverse_convassembly = ''
+
+		self.forward_variation = []; self.reverse_variation = []
 
 		self.exception_raised = ''
 
@@ -44,6 +47,8 @@ class SequenceSample:
 
 	def set_referenceidx(self, inidx):
 		self.reference_idx = inidx
+	def set_referencefile(self, infi):
+		self.reference_file = infi
 	def set_forwardfastq(self, inreads):
 		self.forward_fastq = inreads
 	def set_reversefastq(self, inreads):
@@ -83,6 +88,11 @@ class SequenceSample:
 	def set_reverse_convassembly(self, pathtofi):
 		self.reverse_convassembly = pathtofi
 
+	def set_forward_variation(self, vector):
+		self.forward_variation = vector
+	def set_reverse_variation(self, vector):
+		self.reverse_variation = vector
+
 	def set_exception(self, exc):
 		self.exception_raised = exc
 
@@ -101,6 +111,8 @@ class SequenceSample:
 
 	def get_referenceidx(self):
 		return self.reference_idx
+	def get_referencefile(self):
+		return self.reference_file
 	def get_forwardfastq(self):
 		return self.forward_fastq
 	def get_reversefastq(self):
@@ -140,6 +152,11 @@ class SequenceSample:
 	def get_reverse_convassembly(self):
 		return self.reverse_convassembly
 
+	def get_forward_variation(self):
+		return self.forward_variation
+	def get_reverse_variation(self):
+		return self.reverse_variation
+
 	def get_exception(self):
 		return self.exception_raised
 
@@ -152,3 +169,12 @@ class SequenceSample:
 			except OSError as exc:
 					if exc.errno == errno.EEXIST and os.path.isdir(path):pass
 					else: raise
+
+	def methylation_regions(self, region):
+		## hard coded CPG reference sequence positions
+		## as per the ref sequences used for our experiments
+
+		if region == 'CPG3':
+			return [23, 54, 57, 65, 71, 74, 77, 79, 85, 91, 94, 97, 102, 111, 118, 121, 133, 138, 153, 157, 180, 205, 215, 218, 221, 223, 228, 233, 242, 252, 261, 269, 277]
+		if region == 'CPG5':
+			return [21, 24, 27, 39, 54, 60, 66, 69, 72, 78, 81, 88, 93, 111, 119, 123, 137, 155, 158, 172, 175, 184, 202, 207, 210, 215, 223, 229]
