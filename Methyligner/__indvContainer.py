@@ -29,6 +29,7 @@ class SequenceSample:
 		self.reverse_convassembly = ''
 
 		self.forward_variation = []; self.reverse_variation = []
+		self.forward_methylation = []; self.reverse_methylation = []
 
 		self.exception_raised = ''
 
@@ -92,6 +93,10 @@ class SequenceSample:
 		self.forward_variation = vector
 	def set_reverse_variation(self, vector):
 		self.reverse_variation = vector
+	def set_forward_methylation(self, vector):
+		self.forward_methylation = vector
+	def set_reverse_methylation(self, vector):
+		self.reverse_methylation = vector
 
 	def set_exception(self, exc):
 		self.exception_raised = exc
@@ -156,6 +161,11 @@ class SequenceSample:
 		return self.forward_variation
 	def get_reverse_variation(self):
 		return self.reverse_variation
+
+	def get_forward_methylation(self):
+		return self.forward_methylation
+	def get_reverse_methylation(self):
+		return self.reverse_methylation
 
 	def get_exception(self):
 		return self.exception_raised

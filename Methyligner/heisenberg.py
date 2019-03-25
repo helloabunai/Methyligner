@@ -4,6 +4,7 @@ __author__ = 'alastair.maxwell@glasgow.ac.uk'
 
 ## Python shit
 import os
+import gc
 import csv
 import sys
 import shutil
@@ -120,18 +121,34 @@ class Methyligner:
 
 		##
 		## Instance results (methylation table)
-		self.instance_results = os.path.join(self.instance_rundir, 'QuantifiedVariationReport.csv'); csv_header = []
+		self.instance_results = os.path.join(self.instance_rundir, 'QuantifiedMethylationReport.csv'); csv_header = []
 		if self.args.region[0] == 'CPG3':
 			position_strings = ['CPG3@'+str(x) for x in CPG3]
-			csv_header = ['Sample Name', 'Orientation', 'Initial Reads', 'PostDMPX Reads', 'PostTRIM Reads', 'Utilised Reads'] + position_strings
+			csv_header = ['Sample Name', 'Orientation', 'Initial Reads', 'PostDMPX Reads', 'PostTRIM Reads'] + position_strings
 		if self.args.region[0] == 'CPG5':
 			position_strings = ['CPG5@'+str(x) for x in CPG5]
-			csv_header = ['Sample Name', 'Orientation', 'Initial Reads', 'PostDMPX Reads', 'PostTRIM Reads', 'Utilised Reads'] + position_strings
+			csv_header = ['Sample Name', 'Orientation', 'Initial Reads', 'PostDMPX Reads', 'PostTRIM Reads'] + position_strings
 
 		## Write header to file
 		with open(self.instance_results, 'w') as outfi:
 			wr = csv.writer(outfi)
 			wr.writerow(csv_header)
+
+	def append_report(self, sequencepair_object):
+
+		forward_methylation = sequencepair_object.get_forward_methylation(); reverse_methylation = sequencepair_object.get_reverse_methylation()
+		forward_guancyto = ['{}'.format(x[2]) for x in forward_methylation]; reverse_guancyto = ['{}'.format(x[2]) for x in reverse_methylation]
+
+		forward_output = [sequencepair_object.get_label(), 'R1', sequencepair_object.get_initial_readcount(), sequencepair_object.get_postdmpx_readcount(), sequencepair_object.get_posttrim_readcount()] + forward_guancyto
+		reverse_output = ['', 'R2', '', '', ''] + reverse_guancyto
+
+		try:
+			with open(self.instance_results, 'a') as outfi:
+				wr = csv.writer(outfi)
+				wr.writerow(forward_output)
+				wr.writerow(reverse_output)
+		except Exception, e:
+			log.error('{}{}{}{}{}'.format(clr.red, 'mth__ ', clr.end, 'Unable to write to results file: ', e))
 
 	def sequence_workflow(self):
 		"""
@@ -254,13 +271,28 @@ class Methyligner:
 				## Stage 3 PySamStats analysis!! ##
 				###################################
 				log.info('{}{}{}{}'.format(clr.bold, 'mth__ ', clr.end, 'Running PySAMStats analysis..'))
-				#try:
-				analysis.Quantification(current_seqpair, self.instance_params)
-				log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
-				#except Exception, e:
-				#	current_seqpair.set_exception('Analysis-PYSAM')
-				#	log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'Analysis failure on ',seqpair_lbl,str(e)))
-				#	continue
+				try:
+					analysis.Quantification(current_seqpair, self.instance_params)
+					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
+				except Exception, e:
+					current_seqpair.set_exception('Analysis-PYSAM')
+					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'Analysis failure on ',seqpair_lbl,str(e)))
+					continue
+
+				##########################################
+				## Stage 4 some other post processing?? ##
+				##########################################
+
+				########################
+				## Append output bruh ##
+				########################
+				try:
+					self.append_report(current_seqpair)
+				except Exception, e:
+					current_seqpair.set_exceptionraised('Report/Graph')
+					log.info('{}{}{}{}{}: {}'.format(clr.red, 'shd__ ', clr.end, 'Report/Graphing failure on ', seqpair_lbl, str(e)))
+				gc.collect()
+				log.info('{}{}{}{}'.format(clr.green,'mth__ ',clr.end,'Sequence pair workflow complete!'))
 
 def main():
 	try:
