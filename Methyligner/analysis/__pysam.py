@@ -51,109 +51,75 @@ class Quantification:
     	else:
     		utilised_limit = read_depth_limit
 
-        self.determine_methylation(bamfi, orientation)
-    	if quantify_variation: self.determine_variation(bamfi, orientation)
-    	if quantify_mapq: self.determine_mapq(bamfi, orientation)
-    	if quantify_baseq: self.determine_baseq(bamfi, orientation)
+    	# determine methylation
+    	methylation_data = self.pysamstats_scraper(bamfi, orientation, '_methylationReport.txt', 'coverage_gc', 3, utilised_limit)
+    	## assign objects for this orientation
+    	if orientation == 'R1': self.sequencepair_object.set_forward_methylation(methylation_data)
+    	if orientation == 'R2': self.sequencepair_object.set_reverse_methylation(methylation_data)
 
-    def determine_variation(self, bamfi, orientation):
+    	## determine variation
+    	if quantify_variation: 
+    		variation_data = self.pysamstats_scraper(bamfi, orientation, '_variationReport.txt', 'variation', 21, utilised_limit)
+    		## assign objects for this orientation
+    		if orientation == 'R1': self.sequencepair_object.set_forward_variation(variation_data)
+    		if orientation == 'R2': self.sequencepair_object.set_reverse_variation(variation_data)
 
-        ##
-        ## Generate variation table
-        utilised_reference = self.sequencepair_object.get_referencefile()
-        variation_output = os.path.join(self.target_output, '{}_variation_report.txt'.format(orientation))
-        variation_file = open(variation_output, 'w')
-        variation_process = subprocess.Popen(['pysamstats', '--type', 'variation', '--fasta', utilised_reference, bamfi], stdout=variation_file)
-        variation_stderr = variation_process.communicate()[1]; variation_process.wait(); variation_file.close()
+    	## determine mapQ
+    	if quantify_baseq:
+    		baseq_data = self.pysamstats_scraper(bamfi, orientation, '_baseqReport.txt', 'baseq', 4, utilised_limit)
+    		## assign objects for this orientation
+    		if orientation == 'R1': self.sequencepair_object.set_forward_baseq(baseq_data)
+    		if orientation == 'R2': self.sequencepair_object.set_reverse_baseq(baseq_data)
 
-        ##
-        ## Filter for current region's position(s)
-        target_region = self.instance_params.config_dict['MethRegion'][0]
-        methregion_positions = self.sequencepair_object.methylation_regions(target_region)
-        np.warnings.filterwarnings('ignore') ## ignore numpy complaining about empty file if we skip header on variation_report with no results
-        variation_data = np.ndarray.tolist(np.genfromtxt(variation_output, delimiter='\t', dtype=None, encoding="utf8", skip_header=1))
-        ## HEADER:: chrom, pos, ref, reads_all, reads_pp, matches, matches_pp, mismatches, mismatches_pp, deletions, deletions_pp, insertions, insertions_pp, A, A_pp, C, C_pp, T, T_pp, G, G_pp, N, N_pp
-        ## Filter all processed positions to those relevant to current methylation region
-        if len(variation_data) == 0:
-            ## empty file, no variation reported for this alignment
-            for position in methregion_positions:
-                temp1 = ['{}{}'.format(target_region, 'NullVariationReported'), position]; temp2 = ['0']*21
-                variation_data.append(temp1+temp2)
-        else:
-            ## file had variation report
-            ## remove positions from source data not in the current CPG region
-            ## iterate BACKWARDS to remove faster
-            for i in xrange(len(variation_data) - 1, -1, -1):
-                element = variation_data[i]
-                if element[1] not in methregion_positions:
-                    del variation_data[i]
+   		## determine baseQ
+   		if quantify_mapq:
+			mapq_data = self.pysamstats_scraper(bamfi, orientation, '_mapqReport.txt', 'mapq', 8, utilised_limit)
+			## assign objects for this orientation
+			if orientation == 'R1': self.sequencepair_object.set_forward_mapq(mapq_data)
+			if orientation == 'R2': self.sequencepair_object.set_reverse_mapq(mapq_data)
 
-            ## check for positions missing for current CPG region data
-            for position, result in itertools.izip_longest(methregion_positions, variation_data):
-                try:
-                    if position != result[1]:
-                        mismatch_idx = variation_data.index(result)
-                        temp1 = ['{}{}'.format(target_region, 'NullVariationReported'), position]; temp2 = ['0']*21
-                        variation_data.insert(mismatch_idx, temp1+temp2)
-                except TypeError:
-                    ## variation_data had a None within iteration
-                    temp1 = ['{}{}'.format(target_region, 'NullVariationReported'), position]; temp2 = ['0']*21
-                    variation_data.append(temp1+temp2)
+    def pysamstats_scraper(self, bamfi, orientation, outfi_string, requested_analysis, blank_range, read_depth):
 
-        ## assign to object
-        if orientation == 'R1': self.sequencepair_object.set_forward_variation(variation_data)
-        if orientation == 'R2': self.sequencepair_object.set_reverse_variation(variation_data)
+    	##
+    	## Generate data for the current desired function
+    	## requested_analysis == specific stats the user wants to run
+    	utilised_reference = self.sequencepair_object.get_referencefile()
+    	target_output_file = os.path.join(self.target_output, '{}{}'.format(orientation, outfi_string))
+    	target_output_object = open(target_output_file, 'w')
+    	target_subprocess = subprocess.Popen(['pysamstats', '--type', requested_analysis, '--max-depth',
+    	 str(read_depth), '--fasta', utilised_reference, bamfi],
+    	 stdout=target_output_object, stderr=subprocess.PIPE)
+    	subprocess_stderr = target_subprocess.communicate()[1]; target_subprocess.wait(); target_output_object.close()
 
-    def determine_methylation(self, bamfi, orientation):
+    	##
+    	## Filter results for the CPG region's relevant positions
+    	target_region = self.instance_params.config_dict['MethRegion'][0]
+    	target_positions = self.sequencepair_object.methylation_regions(target_region)
+    	np.warnings.filterwarnings('ignore') ##ignore numpycomplaining about empty file if pysamstats returned null
+    	analysis_data = np.ndarray.tolist(np.genfromtxt(target_output_file, delimiter='\t', dtype=None, encoding='utf8', skip_header=1))
+    	if len(analysis_data) == 0:
+    		##empty file, no analysis reported
+    		for position in target_positions:
+    			header = ['{}{}'.format(target_region, 'NullAnalysisReported'), position]; footer = ['0']*blank_range
+    			analysis_data.append(header+footer)
+    	else:
+    		## file had analysis
+    		## remove unwanted positions for this CPG region, iterate backwards
+    		for i in xrange(len(analysis_data)-1, -1, -1):
+    			element = analysis_data[i]
+    			if element[1] not in target_positions:
+    				del analysis_data[i]
 
-        ##
-        ## Generate methylation data
-        utilised_reference = self.sequencepair_object.get_referencefile()
-        methylation_output = os.path.join(self.target_output, '{}_methylation_report.txt'.format(orientation))
-        methylation_file = open(methylation_output, 'w')
-        methylation_process = subprocess.Popen(['pysamstats', '--type', 'coverage_gc', '--fasta', utilised_reference, bamfi], stdout=methylation_file)
-        methylation_stderr = methylation_process.communicate()[1]; methylation_process.wait(); methylation_file.close()
+    		## check leftover analysis positions for missing values
+    		for position, result in itertools.izip_longest(target_positions, analysis_data):
+    			try:
+    				if position != result[1]:
+    					mismatch_idx = analysis_data.index(result)
+    					header = ['{}{}'.format(target_region, 'NullAnalysisReported'), position]; footer = ['0']*blank_range
+    					analysis_data.insert(mismatch_idx, header+footer)
+    			except TypeError:
+    				## variation data had a None within iteration of valid positions
+    				header = ['{}{}'.format(target_region, 'NullAnalysisReported'), position]; footer = ['0']*blank_range
+    				analysis_data.append(header+footer)
 
-        ##
-        ## Filter for current region's position(s)
-        target_region = self.instance_params.config_dict['MethRegion'][0]
-        methregion_positions = self.sequencepair_object.methylation_regions(target_region)
-        np.warnings.filterwarnings('ignore') ## ignore numpy complaining about empty file if we skip header on variation_report with no results
-        methylation_data = np.ndarray.tolist(np.genfromtxt(methylation_output, delimiter='\t', dtype=None, encoding='utf8', skip_header=1))
-        ## HEADER:: chrom, pos, gc_content, reads, read_pp
-        ## Filter all processed positions to those relevant to current methylation region
-        if len(methylation_data) == 0:
-            ## empty file, no variation reported for this alignment
-            for position in methregion_positions:
-                temp1 = ['{}{}'.format(target_region, 'NullMethylationReported'), position]; temp2 = ['0']*3
-                methylation_data.append(temp1+temp2)
-        else:
-            ## file had variation report
-            ## remove positions from source data not in the current CPG region
-            ## iterate BACKWARDS to remove faster
-            for i in xrange(len(methylation_data) - 1, -1, -1):
-                element = methylation_data[i]
-                if element[1] not in methregion_positions:
-                    del methylation_data[i]
-
-            ## check for positions missing for current CPG region data
-            for position, result in itertools.izip_longest(methregion_positions, methylation_data):
-                try:
-                    if position != result[1]:
-                        mismatch_idx = methylation_data.index(result)
-                        temp1 = ['{}{}'.format(target_region, 'NullMethylationReported'), position]; temp2 = ['0']*3
-                        methylation_data.insert(mismatch_idx, temp1+temp2)
-                except TypeError:
-                    ## variation_data had a None within iteration
-                    temp1 = ['{}{}'.format(target_region, 'NullMethylationReported'), position]; temp2 = ['0']*3
-                    methylation_data.append(temp1+temp2)
-
-        ## assign to object
-        if orientation == 'R1': self.sequencepair_object.set_forward_methylation(methylation_data)
-        if orientation == 'R2': self.sequencepair_object.set_reverse_methylation(methylation_data)
-
-    def determine_mapq(self, bamfi, orientation):
-    	pass
-
-    def determine_baseq(self, bamfi, orientation):
-    	pass
+    	return analysis_data

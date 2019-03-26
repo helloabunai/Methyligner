@@ -124,10 +124,10 @@ class Methyligner:
 		self.instance_results = os.path.join(self.instance_rundir, 'QuantifiedMethylationReport.csv'); csv_header = []
 		if self.args.region[0] == 'CPG3':
 			position_strings = ['CPG3@'+str(x) for x in CPG3]
-			csv_header = ['Sample Name', 'Orientation', 'Initial Reads', 'PostDMPX Reads', 'PostTRIM Reads'] + position_strings
+			csv_header = ['Sample Name', 'Orientation', 'Aligned read count'] + position_strings
 		if self.args.region[0] == 'CPG5':
 			position_strings = ['CPG5@'+str(x) for x in CPG5]
-			csv_header = ['Sample Name', 'Orientation', 'Initial Reads', 'PostDMPX Reads', 'PostTRIM Reads'] + position_strings
+			csv_header = ['Sample Name', 'Orientation', 'Aligned read count'] + position_strings
 
 		## Write header to file
 		with open(self.instance_results, 'w') as outfi:
@@ -139,8 +139,8 @@ class Methyligner:
 		forward_methylation = sequencepair_object.get_forward_methylation(); reverse_methylation = sequencepair_object.get_reverse_methylation()
 		forward_guancyto = ['{}'.format(x[2]) for x in forward_methylation]; reverse_guancyto = ['{}'.format(x[2]) for x in reverse_methylation]
 
-		forward_output = [sequencepair_object.get_label(), 'R1', sequencepair_object.get_initial_readcount(), sequencepair_object.get_postdmpx_readcount(), sequencepair_object.get_posttrim_readcount()] + forward_guancyto
-		reverse_output = ['', 'R2', '', '', ''] + reverse_guancyto
+		forward_output = [sequencepair_object.get_label(), 'R1', sequencepair_object.get_posttrim_readcount()] + forward_guancyto
+		reverse_output = ['', 'R2', ''] + reverse_guancyto
 
 		try:
 			with open(self.instance_results, 'a') as outfi:
