@@ -227,7 +227,7 @@ class Methyligner:
 					qualitycontrol.SeqQC(current_seqpair, self.instance_params, target_bin='FQC', stage='PostDMPX')
 					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
 				except Exception, e:
-					current_seqpair.set_exception('SeqQC-DMPX')
+					current_seqpair.set_exception('SeqQC-FastQC')
 					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'SeqQC failure on ',seqpair_lbl,str(e)))
 					continue
 
@@ -239,7 +239,7 @@ class Methyligner:
 					qualitycontrol.SeqQC(current_seqpair, self.instance_params, target_bin='CATR')
 					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
 				except Exception, e:
-					current_seqpair.set_exception('SeqQC-DMPX')
+					current_seqpair.set_exception('SeqQC-QualTrim')
 					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'SeqQC failure on ',seqpair_lbl,str(e)))
 					continue
 
@@ -251,7 +251,7 @@ class Methyligner:
 					qualitycontrol.SeqQC(current_seqpair, self.instance_params, target_bin='FQC', stage='PostTrim')
 					log.info('{}{}{}{}'.format(clr.green, 'mth__ ', clr.end, 'Complete!'))
 				except Exception, e:
-					current_seqpair.set_exception('SeqQC-DMPX')
+					current_seqpair.set_exception('SeqQC-FastQC')
 					log.info('{}{}{}{}{}: {}\n'.format(clr.red,'mth__ ',clr.end,'SeqQC failure on ',seqpair_lbl,str(e)))
 					continue
 
