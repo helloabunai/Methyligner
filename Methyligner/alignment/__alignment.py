@@ -133,11 +133,11 @@ class MethAlign:
 		output_assembly = os.path.join(alignment_outdir, '{}_assembly.sam'.format(sample_string))
 		output_file= open(output_assembly,'w')
 		bwameth_process = subprocess.Popen(['bwameth.py', '--threads', str(THREADS), '--reference', vanilla_fasta, inreads, '-k', min_seed_length,
-										'-w', band_width, '-r', seed_length_extension,
-										'-c', skip_seed_with_occurrence, '-D', chain_drop, '-W', seeded_chain_drop,
-										'-A', seq_match_score, '-B', mismatch_penalty, '-O', indel_penalty,
-										'-E', gap_extend_penalty, '-L', prime_clipping_penalty,
-										'-U', unpaired_pairing_penalty], stdout=output_file, stderr=subprocess.PIPE)
+												'-w', band_width, '-r', seed_length_extension,
+												'-c', skip_seed_with_occurrence, '-D', chain_drop, '-W', seeded_chain_drop,
+												'-A', seq_match_score, '-B', mismatch_penalty, '-O', indel_penalty,
+												'-E', gap_extend_penalty, '-L', prime_clipping_penalty,
+												'-U', unpaired_pairing_penalty], stdout=output_file, stderr=subprocess.PIPE)
 		bwameth_stderr = bwameth_process.communicate()[1]; bwameth_process.wait()
 		output_file.close()
 
