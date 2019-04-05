@@ -39,14 +39,18 @@ Date   : god damn it -->
 
 <!-- ALIGNMENT_FLAGS ELEMENT -->
 <!ELEMENT alignment_flags (#PCDATA)>
-<!ATTLIST alignment_flags seed_mismatch CDATA #IMPLIED>
-<!ATTLIST alignment_flags seed_length CDATA #IMPLIED>
-<!ATTLIST alignment_flags min_valid_insertions CDATA #IMPLIED>
-<!ATTLIST alignment_flags max_valid_insertions CDATA #IMPLIED>
-<!ATTLIST alignment_flags seed_extension_attempts CDATA #IMPLIED>
-<!ATTLIST alignment_flags reseed_attempts CDATA #IMPLIED>
-<!ATTLIST alignment_flags read_open_extend CDATA #IMPLIED>
-<!ATTLIST alignment_flags rfnc_open_extend CDATA #IMPLIED>
+<!ATTLIST alignment_flags min_seed_length CDATA #IMPLIED>
+<!ATTLIST alignment_flags band_width CDATA #IMPLIED>
+<!ATTLIST alignment_flags seed_length_extension CDATA #IMPLIED>
+<!ATTLIST alignment_flags skip_seed_with_occurrence CDATA #IMPLIED>
+<!ATTLIST alignment_flags chain_drop CDATA #IMPLIED>
+<!ATTLIST alignment_flags seeded_chain_drop CDATA #IMPLIED>
+<!ATTLIST alignment_flags seq_match_score CDATA #IMPLIED>
+<!ATTLIST alignment_flags mismatch_penalty CDATA #IMPLIED>
+<!ATTLIST alignment_flags indel_penalty CDATA #IMPLIED>
+<!ATTLIST alignment_flags gap_extend_penalty CDATA #IMPLIED>
+<!ATTLIST alignment_flags prime_clipping_penalty CDATA #IMPLIED>
+<!ATTLIST alignment_flags unpaired_pairing_penalty CDATA #IMPLIED>
 
 <!-- ANALYSIS_FLAGS ELEMENT -->
 <!ELEMENT analysis_flags (#PCDATA)>

@@ -262,30 +262,38 @@ class ConfigReader(object):
 		##
 		## Alignment flag settings
 		if alignment_flag == 'True':
-			seed_mismatch = self.config_dict['alignment_flags']['@seed_mismatch']
-			seed_length = self.config_dict['alignment_flags']['@seed_length']
-			min_valid_insertions = self.config_dict['alignment_flags']['@min_valid_insertions']
-			max_valid_insertions = self.config_dict['alignment_flags']['@max_valid_insertions']
-			seed_extension_attempts = self.config_dict['alignment_flags']['@seed_extension_attempts']
-			reseed_attempts = self.config_dict['alignment_flags']['@reseed_attempts']
-			read_open_extend = self.config_dict['alignment_flags']['@read_open_extend']
-			rfnc_open_extend = self.config_dict['alignment_flags']['@rfnc_open_extend']
+			min_seed_length = self.config_dict['alignment_flags']['@min_seed_length']
+			band_width = self.config_dict['alignment_flags']['@band_width']
+			seed_length_extension = self.config_dict['alignment_flags']['@seed_length_extension']
+			skip_seed_with_occurrence = self.config_dict['alignment_flags']['@skip_seed_with_occurrence']
+			chain_drop = self.config_dict['alignment_flags']['@chain_drop']
+			seeded_chain_drop = self.config_dict['alignment_flags']['@seeded_chain_drop']
+			seq_match_score = self.config_dict['alignment_flags']['@seq_match_score']
+			mismatch_penalty = self.config_dict['alignment_flags']['@mismatch_penalty']
+			indel_penalty = self.config_dict['alignment_flags']['@indel_penalty']
+			gap_extend_penalty = self.config_dict['alignment_flags']['@gap_extend_penalty']
+			prime_clipping_penalty = self.config_dict['alignment_flags']['@prime_clipping_penalty']
+			unpaired_pairing_penalty = self.config_dict['alignment_flags']['@unpaired_pairing_penalty']
 
 			## Alignment integers
-			for parameter in [seed_mismatch, seed_length, min_valid_insertions,
-							  max_valid_insertions, seed_extension_attempts, reseed_attempts]:
+			for parameter in [min_seed_length, band_width, skip_seed_with_occurrence, seq_match_score, mismatch_penalty, unpaired_pairing_penalty]:
 				if not parameter.isdigit():
-					log.error('{}{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Alignment parameter is not a valid integer!', parameter))
+					log.error('{}{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Alignment parameter is not a valid integer! ', parameter))
+
+			## Alignment floats
+			for parameter in [seed_length_extension, chain_drop, seeded_chain_drop]:
+				if not isinstance(float(parameter), float):
+					log.error('{}{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Alignment parameter is not a valid float! ', parameter))
 
 			## Alignment tuples
-			for parameter in [read_open_extend, rfnc_open_extend]:
+			for parameter in [indel_penalty, gap_extend_penalty, prime_clipping_penalty]:
 				char_vec = list(parameter)
 				err_count = 0
 				if not char_vec[0].isdigit(): err_count+=1
 				if not char_vec[1] == ',': err_count+=1
 				if not char_vec[2].isdigit(): err_count+=1
 				if err_count != 0:
-					log.error('{}{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Alignment parameter is not a valid integer/structure!', parameter))
+					log.error('{}{}{}{}{}'.format(Colour.red, 'mth__ ', Colour.end, 'XML Config: Alignment parameter is not a valid integer/structure! ', parameter))
 
 		##
 		## Methylation Analysis flag settings

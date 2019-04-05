@@ -89,14 +89,18 @@ class MethAlign:
 
 		##
 		## Tons of alignment flags
-		seed_mismatch = self.instance_params.config_dict['alignment_flags']['@seed_mismatch']
-		seed_length = self.instance_params.config_dict['alignment_flags']['@seed_length']
-		min_valid_insertions = self.instance_params.config_dict['alignment_flags']['@min_valid_insertions']
-		max_valid_insertions = self.instance_params.config_dict['alignment_flags']['@max_valid_insertions']
-		seed_extension_attempts = self.instance_params.config_dict['alignment_flags']['@seed_extension_attempts']
-		reseed_attempts = self.instance_params.config_dict['alignment_flags']['@reseed_attempts']
-		read_open_extend = self.instance_params.config_dict['alignment_flags']['@read_open_extend']
-		rfnc_open_extend = self.instance_params.config_dict['alignment_flags']['@rfnc_open_extend']
+		min_seed_length = self.instance_params.config_dict['alignment_flags']['@min_seed_length']
+		band_width = self.instance_params.config_dict['alignment_flags']['@band_width']
+		seed_length_extension = self.instance_params.config_dict['alignment_flags']['@seed_length_extension']
+		skip_seed_with_occurrence = self.instance_params.config_dict['alignment_flags']['@skip_seed_with_occurrence']
+		chain_drop = self.instance_params.config_dict['alignment_flags']['@chain_drop']
+		seeded_chain_drop = self.instance_params.config_dict['alignment_flags']['@seeded_chain_drop']
+		seq_match_score = self.instance_params.config_dict['alignment_flags']['@seq_match_score']
+		mismatch_penalty = self.instance_params.config_dict['alignment_flags']['@mismatch_penalty']
+		indel_penalty = self.instance_params.config_dict['alignment_flags']['@indel_penalty']
+		gap_extend_penalty = self.instance_params.config_dict['alignment_flags']['@gap_extend_penalty']
+		prime_clipping_penalty = self.instance_params.config_dict['alignment_flags']['@prime_clipping_penalty']
+		unpaired_pairing_penalty = self.instance_params.config_dict['alignment_flags']['@unpaired_pairing_penalty']
 
 		##
 		## Output path
@@ -128,8 +132,12 @@ class MethAlign:
 
 		output_assembly = os.path.join(alignment_outdir, '{}_assembly.sam'.format(sample_string))
 		output_file= open(output_assembly,'w')
-		bwameth_process = subprocess.Popen(['bwameth.py', '--threads', str(THREADS),
-			'--reference', vanilla_fasta, inreads], stdout=output_file, stderr=subprocess.PIPE)
+		bwameth_process = subprocess.Popen(['bwameth.py', '--threads', str(THREADS), '--reference', vanilla_fasta, inreads, '-k', min_seed_length,
+										'-w', band_width, '-r', seed_length_extension,
+										'-c', skip_seed_with_occurrence, '-D', chain_drop, '-W', seeded_chain_drop,
+										'-A', seq_match_score, '-B', mismatch_penalty, '-O', indel_penalty,
+										'-E', gap_extend_penalty, '-L', prime_clipping_penalty,
+										'-U', unpaired_pairing_penalty], stdout=output_file, stderr=subprocess.PIPE)
 		bwameth_stderr = bwameth_process.communicate()[1]; bwameth_process.wait()
 		output_file.close()
 

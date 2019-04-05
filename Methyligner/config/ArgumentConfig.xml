@@ -2,6 +2,6 @@
 	<instance_flags demultiplex="True" quality_control="True" sequence_alignment="True" methylation_analysis="True"/>
 	<demultiplex_flags forward_adapter="GTTTTTTTAGTTTTTTTAGT" forward_position="5P" reverse_adapter="" reverse_position="" error_rate="0" min_overlap="10" min_length="" max_length=""/>
 	<trim_flags	trim_type="Quality" quality_threshold="20" adapter_flag="" forward_adapter="" reverse_adapter="" error_tolerance="0.5"/>
-	<alignment_flags seed_mismatch="0" seed_length="20" min_valid_insertions="0" max_valid_insertions="500" seed_extension_attempts="15" reseed_attempts="2" read_open_extend="5,3" rfnc_open_extend="5,3"/>
-	<analysis_flags placeholder='placeholder'/>
+	<alignment_flags min_seed_length="19" band_width="100" seed_length_extension="1.5" skip_seed_with_occurrence="500" chain_drop="0.50" seeded_chain_drop="0" seq_match_score="1" mismatch_penalty="4" indel_penalty="6,6" gap_extend_penalty="6,6" prime_clipping_penalty="5,5" unpaired_pairing_penalty="17"/>
+	<analysis_flags quant_variation='True' quant_mapq='True' quant_baseq='True' read_depth_limit='0'/>
 </config>
